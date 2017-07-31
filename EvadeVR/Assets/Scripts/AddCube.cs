@@ -8,11 +8,12 @@ public class AddCube : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        GameObject cube = Instantiate(myCube);
-    }
+        Instantiate(myCube);
+		
+	}
 	
 	// Update is called once per frame
 	void Update () {
-	    
+		
 	}
 }
