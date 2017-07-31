@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvadeVR", "Assembly-CSharp.csproj", "{F3C707CE-8C3A-F37C-1DBB-579C17110B34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvadeVR", "Assembly-CSharp-Editor.csproj", "{12362DEC-C829-B861-7198-6698F2496DAA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F3C707CE-8C3A-F37C-1DBB-579C17110B34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3C707CE-8C3A-F37C-1DBB-579C17110B34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3C707CE-8C3A-F37C-1DBB-579C17110B34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3C707CE-8C3A-F37C-1DBB-579C17110B34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12362DEC-C829-B861-7198-6698F2496DAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12362DEC-C829-B861-7198-6698F2496DAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12362DEC-C829-B861-7198-6698F2496DAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12362DEC-C829-B861-7198-6698F2496DAA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Assembly-CSharp.csproj
+	EndGlobalSection
+EndGlobal
