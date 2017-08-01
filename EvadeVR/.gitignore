@@ -1,21 +1,21 @@
 # =============== #
 # Unity generated #
 # =============== #
-[Tt]emp/
-[Oo]bj/
-[Bb]uild
-[Bb]uilds/
-[Ll]ibrary/
+./[Tt]emp/
+./[Oo]bj/
+./[Bb]uild
+./[Bb]uilds/
+./[Ll]ibrary/
 sysinfo.txt
 *.stackdump
-Assets/AssetStoreTools*
+./Assets/AssetStoreTools*
 *.apk
 *.unitypackage
  
 # ===================================== #
 # Visual Studio / MonoDevelop generated #
 # ===================================== #
-[Ee]xported[Oo]bj/
+./[Ee]xported[Oo]bj/
 .vs/
 *.userprefs
 *.csproj
@@ -41,5 +41,5 @@ Icon?
 ehthumbs.db
 [Tt]humbs.db
 [Dd]esktop.ini
-Corridor/Library/ShaderCache/
-Corridor/Library/metadata/
+./Corridor/Library/ShaderCache/
+./Corridor/Library/metadata/
