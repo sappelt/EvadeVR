@@ -7,6 +7,7 @@ using UnityEngine;
 public class AddCube : MonoBehaviour {
 
 	public GameObject theCube;
+
 	public float stepDuration = 0.2f;
 
 	public int rows = 12;
@@ -21,7 +22,7 @@ public class AddCube : MonoBehaviour {
 
 	public GameObject areaGameObject;
 
-	private List<GameObject> cubes  = new List<GameObject>();
+	private List<GameObject> cubes = new List<GameObject>();
 
 	private float nextActionTime = 0.0f;
 	private int step = 0;
@@ -34,7 +35,6 @@ public class AddCube : MonoBehaviour {
 
 	//private Dictionary<int, Vector3> itemDict = new Dictionary<int, Vector3> ();
 
-	TimeStep timestep;
 	List<Dictionary<int, Vector3>> dictList = new List<Dictionary<int, Vector3>>();
 
 	// Use this for initialization
@@ -45,10 +45,11 @@ public class AddCube : MonoBehaviour {
 		parseCSV(Application.dataPath+"/Resources");
 
 		//Get the Obejcts and calculate Stuff
-		cubeWidth = theCube.transform.localScale.x;
+        cubeWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x/12;
+        theCube.transform.localScale = new Vector3(cubeWidth, cubeWidth, cubeWidth);
 
-		//Random Factor 10, because 10 (Dafuq?!)
-		startX = - (((areaGameObject.transform.localScale.x * areaGameObject.transform.parent.localScale.x * 10) - cubeWidth) / 2);
+        //Random Factor 10, because 10 (Dafuq?!)
+        startX = - (((areaGameObject.transform.localScale.x * areaGameObject.transform.parent.localScale.x * 10) - cubeWidth) / 2);
 		startZ = - (((areaGameObject.transform.localScale.z * areaGameObject.transform.parent.localScale.z * 10) - cubeWidth) / 2);
 		startY = cubeWidth / 2;
 
@@ -60,7 +61,9 @@ public class AddCube : MonoBehaviour {
 		for (int i = 0; i < dictList.Count; i++) {
 			GameObject cubeInstance; 
 			cubeInstance = Instantiate(theCube);
-			cubeInstance.GetComponent<Renderer> ().material.color = Color.red;
+			cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
+            cubeInstance.transform.position = new Vector3(0, -10000, 0);
+            cubeInstance.name = "Trace: " + i;
 			cubes.Add (cubeInstance);
 		}
 	
@@ -71,22 +74,28 @@ public class AddCube : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (Time.time > nextActionTime ) {
-			nextActionTime += stepDuration;
+
+            Debug.Log("Time step:" + step);
+
+            nextActionTime += stepDuration;
 
 			step++;
 
-			cubeInstance.GetComponent<Renderer> ().material.color = Color.red;
-			Debug.Log (i);
-			if (dictList[0].ContainsKey (step)) {
-				//				Debug.Log (dictList [0] [step]);
-				//				Debug.Log (startVector);
-				//				Debug.Log (Vector3.Scale(dictList[0] [step], scaleVector));
-				//				Debug.Log (Vector3.Scale(dictList[0] [step], scaleVector) + startVector);
+            int cubeIndex = 0;
+            foreach(Dictionary<int, Vector3> trace in dictList)
+            {
+                if(trace.ContainsKey(step))
+                {
+                    cubes[cubeIndex].GetComponent<Renderer>().material.color = Color.red;
+                    cubes[cubeIndex].transform.position = Vector3.Scale(trace[step], scaleVector) + startVector;
+                }
+                else
+                {
+                    cubes[cubeIndex].GetComponent<Renderer>().material.color = Color.blue;
+                }
 
-				cubeInstance.transform.position = Vector3.Scale(dictList[0] [step], scaleVector) + startVector;
-			} else {
-				cubeInstance.GetComponent<Renderer> ().material.color = Color.blue;
-			}
+                cubeIndex++;
+            }
 
 		}
 	}
