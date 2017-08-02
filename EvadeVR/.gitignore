@@ -5,13 +5,13 @@
 **/[Oo]bj/
 **/[Bb]uild
 **/[Bb]uilds/
-**/[Ll]ibrary/
+**/[Ll]ibrary/**
 sysinfo.txt
 *.stackdump
 **/Assets/AssetStoreTools*
 *.apk
 *.unitypackage
- 
+
 # ===================================== #
 # Visual Studio / MonoDevelop generated #
 # ===================================== #
@@ -29,7 +29,7 @@ sysinfo.txt
 .consulo/
 *.tmp
 *.svd
- 
+
 # ============ #
 # OS generated #
 # ============ #
