@@ -44,13 +44,15 @@ public class AddCube : MonoBehaviour {
 		// ! WINDOWS VS MAC PATH NAMES!!!
 		parseCSV(Application.dataPath+"/Resources");
 
-		//Get the Obejcts and calculate Stuff
-        cubeWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x/12;
-        theCube.transform.localScale = new Vector3(cubeWidth, cubeWidth, cubeWidth);
+        //Get the Obejcts and calculate Stuff
+        float areaWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x;
+        cubeWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x / 12;
+        theCube.transform.localScale = new Vector3(cubeWidth, (float)(cubeWidth * 0.1), cubeWidth);
 
         //Random Factor 10, because 10 (Dafuq?!)
-        startX = - (((areaGameObject.transform.localScale.x * areaGameObject.transform.parent.localScale.x * 10) - cubeWidth) / 2);
-		startZ = - (((areaGameObject.transform.localScale.z * areaGameObject.transform.parent.localScale.z * 10) - cubeWidth) / 2);
+        
+        startX = areaGameObject.transform.position.x - (areaWidth / 2) + cubeWidth / 2;
+        startZ = areaGameObject.transform.position.z - (areaWidth / 2) + cubeWidth / 2;
 		startY = cubeWidth / 2;
 
 		//Get the Prototype Cube and Calculate Values
@@ -61,7 +63,7 @@ public class AddCube : MonoBehaviour {
 		for (int i = 0; i < dictList.Count; i++) {
 			GameObject cubeInstance; 
 			cubeInstance = Instantiate(theCube);
-			cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
+			//cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
             cubeInstance.transform.position = new Vector3(0, -10000, 0);
             cubeInstance.name = "Trace: " + i;
 			cubes.Add (cubeInstance);
@@ -86,12 +88,12 @@ public class AddCube : MonoBehaviour {
             {
                 if(trace.ContainsKey(step))
                 {
-                    cubes[cubeIndex].GetComponent<Renderer>().material.color = Color.red;
-                    cubes[cubeIndex].transform.position = Vector3.Scale(trace[step], scaleVector) + startVector;
+                    //cubes[cubeIndex].GetComponent<Renderer>().material.color = Color.red;
+                    cubes[cubeIndex].transform.localPosition = Vector3.Scale(trace[step], scaleVector) + startVector;
                 }
                 else
                 {
-                    cubes[cubeIndex].GetComponent<Renderer>().material.color = Color.blue;
+                    //cubes[cubeIndex].GetComponent<Renderer>().material.color = Color.blue;
                 }
 
                 cubeIndex++;
