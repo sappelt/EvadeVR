@@ -7,7 +7,8 @@ using UnityEngine;
 
 public class AddCube : MonoBehaviour {
 
-	public GameObject theCube;
+	public GameObject itemGameObject;
+    public GameObject machineGameObject;
 
 	public float stepDuration = 0.2f;
 
@@ -48,7 +49,7 @@ public class AddCube : MonoBehaviour {
         //Get the Obejcts and calculate Stuff
         float areaWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x;
         cubeWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x / 12;
-        theCube.transform.localScale = new Vector3(cubeWidth, (float)(cubeWidth * 0.1), cubeWidth);
+        itemGameObject.transform.localScale = new Vector3(cubeWidth, (float)(cubeWidth * 0.1), cubeWidth);
 
         //Random Factor 10, because 10 (Dafuq?!)
         
@@ -85,36 +86,38 @@ public class AddCube : MonoBehaviour {
 			new int[] {11,7},
 			new int[] {11,10}
 		};
+        float machineSize = (float)(cubeWidth * (1 / 1600.0));
         foreach (int[] machine in machines)
         {
-            GameObject cubeInstance;
-            cubeInstance = Instantiate(theCube);
+            GameObject machineInstace;
+            machineInstace = Instantiate(machineGameObject);
 
-            cubeInstance.GetComponent<Renderer>().material.color = Color.red;
-            cubeInstance.transform.position = Vector3.Scale((new Vector3(machine[0], 1, machine[1])), scaleVector) + startVector;
-            cubeInstance.name = "Machine: " + "(" + machine[0] + "," + machine[1] + ")";
+            //machineInstace.GetComponent<Renderer>().material.color = Color.red;
+            machineInstace.transform.position = Vector3.Scale((new Vector3(machine[0], 1, machine[1])), scaleVector) + startVector;
+            machineInstace.transform.localScale = new Vector3(machineSize, machineSize, machineSize);
+            machineInstace.name = "Machine: " + "(" + machine[0] + "," + machine[1] + ")";
         }
-        foreach (int[] source in sources)
-        {
-            GameObject cubeInstance;
-            cubeInstance = Instantiate(theCube);
-            cubeInstance.GetComponent<Renderer>().material.color = Color.white;
-            cubeInstance.transform.position = Vector3.Scale((new Vector3(source[0], 1, source[1])), scaleVector) + startVector;
-            cubeInstance.name = "Source: " + "(" + source[0] + "," + source[1] + ")";
-        }
-        foreach (int[] sink in sinks)
-        {
-            GameObject cubeInstance;
-            cubeInstance = Instantiate(theCube);
-            cubeInstance.GetComponent<Renderer>().material.color = Color.black;
-            cubeInstance.transform.position = Vector3.Scale((new Vector3(sink[0], 1, sink[1])), scaleVector) + startVector;
-            cubeInstance.name = "Sink: " + "(" + sink[0] + "," + sink[1] + ")";
-        }
+        //foreach (int[] source in sources)
+        //{
+        //    GameObject cubeInstance;
+        //    cubeInstance = Instantiate(itemGameObject);
+        //    cubeInstance.GetComponent<Renderer>().material.color = Color.white;
+        //    cubeInstance.transform.position = Vector3.Scale((new Vector3(source[0], 1, source[1])), scaleVector) + startVector;
+        //    cubeInstance.name = "Source: " + "(" + source[0] + "," + source[1] + ")";
+        //}
+        //foreach (int[] sink in sinks)
+        //{
+        //    GameObject cubeInstance;
+        //    cubeInstance = Instantiate(itemGameObject);
+        //    cubeInstance.GetComponent<Renderer>().material.color = Color.black;
+        //    cubeInstance.transform.position = Vector3.Scale((new Vector3(sink[0], 1, sink[1])), scaleVector) + startVector;
+        //    cubeInstance.name = "Sink: " + "(" + sink[0] + "," + sink[1] + ")";
+        //}
 
         //Instantiate 1 cube for every trace
         for (int i = 0; i < dictList.Count; i++) {
 			GameObject cubeInstance; 
-			cubeInstance = Instantiate(theCube);
+			cubeInstance = Instantiate(itemGameObject);
 			//cubeInstance.GetComponent<Renderer> ().material.color = UnityEngine.Random.ColorHSV(0.5f, 0.6f, 0.2f, 1f, 1f, 1f);
 			//cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
             cubeInstance.transform.position = new Vector3(0, -10000, 0);
@@ -128,23 +131,20 @@ public class AddCube : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		if (Time.time > nextActionTime && 0 == 0 ) {
-            nextActionTime += stepDuration;
+		step = (int)Math.Floor(Time.time / stepDuration);
+        float progress = Math.Abs(step - (Time.time / stepDuration));
 
-			step++;
-
-            int cubeIndex = 0;
-            foreach(Dictionary<int, Vector3> trace in dictList)
+        int cubeIndex = 0;
+        foreach (Dictionary<int, Vector3> trace in dictList)
+        {
+            if (trace.ContainsKey(step) && trace.ContainsKey(step+1))
             {
-                if (trace.ContainsKey(step))
-                {
-                    cubes[cubeIndex].transform.position = Vector3.Scale(trace[step], scaleVector) + startVector;
-                }
-
-                cubeIndex++;
+                Vector3 nextPosition = trace[step]+(trace[step + 1] - trace[step])*progress;
+                cubes[cubeIndex].transform.position = Vector3.Scale(nextPosition, scaleVector) + startVector;
             }
 
-		}
+            cubeIndex++;
+        }
 	}
 		
 	public void parseCSV(string directoryPath) {
