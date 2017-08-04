@@ -9,6 +9,7 @@ public class AddCube : MonoBehaviour {
 
 	public GameObject itemGameObject;
     public GameObject machineGameObject;
+    public GameObject viveLeftController;
 
 	public float stepDuration = 0.2f;
 
@@ -25,11 +26,11 @@ public class AddCube : MonoBehaviour {
 	public GameObject areaGameObject;
 
 	private List<GameObject> cubes = new List<GameObject>();
+    private List<Vector3> cubeOffsets = new List<Vector3>();
 
-	private float nextActionTime = 0.0f;
 	private int step = 0;
 	//private int maxSteps = 0;
-	private float cubeWidth = 0; 
+	private float fieldSize = 0; 
 	//private float cubeCenterDistance = 0;
 
 	private Vector3 startVector;
@@ -39,8 +40,17 @@ public class AddCube : MonoBehaviour {
 
 	List<Dictionary<int, Vector3>> dictList = new List<Dictionary<int, Vector3>>();
 
+    bool isPaused = false;
+    ViveController viveController;
+
 	// Use this for initialization
 	void Start () {
+        viveController = viveLeftController.GetComponent<ViveController>();
+        viveController.PointerIn += ViveController_PointerIn;
+        viveController.PointerOut += ViveController_PointerOut;
+        viveController.TriggerClicked += ViveController_TriggerClicked;
+        viveController.PadClicked += ViveController_PadClicked;
+
 		//Parse Data from csv files 
 
 		// ! WINDOWS VS MAC PATH NAMES!!!
@@ -48,17 +58,18 @@ public class AddCube : MonoBehaviour {
 
         //Get the Obejcts and calculate Stuff
         float areaWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x;
-        cubeWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x / 12;
-        itemGameObject.transform.localScale = new Vector3(cubeWidth, (float)(cubeWidth * 0.1), cubeWidth);
+        fieldSize = areaGameObject.GetComponent<Renderer>().bounds.size.x / 12;
+        float cubeWidth = fieldSize / 2;
+        itemGameObject.transform.localScale = new Vector3(cubeWidth, (float)(fieldSize * 0.05), cubeWidth);
 
         //Random Factor 10, because 10 (Dafuq?!)
         
-        startX = areaGameObject.transform.position.x - (areaWidth / 2) + cubeWidth / 2;
-        startZ = areaGameObject.transform.position.z - (areaWidth / 2) + cubeWidth / 2;
-		startY = cubeWidth / 2;
+        startX = areaGameObject.transform.position.x - (areaWidth / 2) + fieldSize / 2;
+        startZ = areaGameObject.transform.position.z - (areaWidth / 2) + fieldSize / 2;
+		startY = fieldSize / 2;
 
 		//Get the Prototype Cube and Calculate Values
-		scaleVector = new Vector3 (cubeWidth, cubeWidth/10, cubeWidth);
+		scaleVector = new Vector3 (fieldSize, fieldSize/10, fieldSize);
 		startVector = new Vector3 (startX, 0, startZ);
 
 		//Draw Machines/Sources/Sinks
@@ -86,7 +97,7 @@ public class AddCube : MonoBehaviour {
 			new int[] {11,7},
 			new int[] {11,10}
 		};
-        float machineSize = (float)(cubeWidth * (1 / 1600.0));
+        float machineSize = (float)(fieldSize * (1 / 1800.0));
         foreach (int[] machine in machines)
         {
             GameObject machineInstace;
@@ -114,6 +125,7 @@ public class AddCube : MonoBehaviour {
         //    cubeInstance.name = "Sink: " + "(" + sink[0] + "," + sink[1] + ")";
         //}
 
+        
         //Instantiate 1 cube for every trace
         for (int i = 0; i < dictList.Count; i++) {
 			GameObject cubeInstance; 
@@ -123,14 +135,57 @@ public class AddCube : MonoBehaviour {
             cubeInstance.transform.position = new Vector3(0, -10000, 0);
             cubeInstance.name = "Trace: " + i;
 			cubes.Add (cubeInstance);
+
+            float randomOffset = UnityEngine.Random.Range(0, fieldSize-(cubeWidth));
+
+            cubeOffsets.Add(new Vector3(randomOffset, 0, randomOffset));
 		}
 	
 		//Cell 0 / 0
 	}
 
+    private void ViveController_PadClicked(object sender, ClickedEventArgs e)
+    {
+        TogglePause();
+    }
+
+    private void ViveController_TriggerClicked(object sender, ClickedEventArgs e)
+    {
+        Debug.Log("Trigger clicked");
+    }
+
+    private void ViveController_PointerOut(object sender, PointerEventArgs e)
+    {
+        Debug.Log("Pointer Out");
+    }
+
+    private void ViveController_PointerIn(object sender, PointerEventArgs e)
+    {
+        Debug.Log("Pointer In");
+    }
+
+
+    private void TogglePause()
+    {
+        if (!isPaused)
+        {
+            Time.timeScale = 0;
+            isPaused = true;
+        }
+        else
+        {
+            Time.timeScale = 1;
+            isPaused = false;
+        }
+    }
 
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetKeyUp(KeyCode.P))
+        {
+            TogglePause();
+        }
+
 		step = (int)Math.Floor(Time.time / stepDuration);
         float progress = Math.Abs(step - (Time.time / stepDuration));
 
@@ -140,7 +195,9 @@ public class AddCube : MonoBehaviour {
             if (trace.ContainsKey(step) && trace.ContainsKey(step+1))
             {
                 Vector3 nextPosition = trace[step]+(trace[step + 1] - trace[step])*progress;
-                cubes[cubeIndex].transform.position = Vector3.Scale(nextPosition, scaleVector) + startVector;
+               
+                cubes[cubeIndex].transform.position = Vector3.Scale(nextPosition, scaleVector) 
+                    + startVector + cubeOffsets[cubeIndex];
             }
 
             cubeIndex++;

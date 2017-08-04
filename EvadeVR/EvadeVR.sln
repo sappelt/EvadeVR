@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2015
+# Visual Studio 2017
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvadeVR", "EvadeVR.csproj", "{4DC416EB-3258-3597-80C3-B0CD2F93EA4D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvadeVR.Editor", "EvadeVR.Editor.csproj", "{1165B077-67C6-5F72-64F9-03CD09AA504B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +15,10 @@ Global
 		{4DC416EB-3258-3597-80C3-B0CD2F93EA4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DC416EB-3258-3597-80C3-B0CD2F93EA4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DC416EB-3258-3597-80C3-B0CD2F93EA4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1165B077-67C6-5F72-64F9-03CD09AA504B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1165B077-67C6-5F72-64F9-03CD09AA504B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1165B077-67C6-5F72-64F9-03CD09AA504B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1165B077-67C6-5F72-64F9-03CD09AA504B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
