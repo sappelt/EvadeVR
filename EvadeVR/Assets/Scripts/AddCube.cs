@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Scripts;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -25,9 +26,6 @@ public class AddCube : MonoBehaviour {
 
 	public GameObject areaGameObject;
 
-	private List<GameObject> cubes = new List<GameObject>();
-    private List<Vector3> cubeOffsets = new List<Vector3>();
-
 	private int step = 0;
 	//private int maxSteps = 0;
 	private float fieldSize = 0; 
@@ -38,7 +36,7 @@ public class AddCube : MonoBehaviour {
 
 	//private Dictionary<int, Vector3> itemDict = new Dictionary<int, Vector3> ();
 
-	List<Dictionary<int, Vector3>> dictList = new List<Dictionary<int, Vector3>>();
+	List<Item> items = new List<Item>();
 
     bool isPaused = false;
     ViveController viveController;
@@ -54,7 +52,7 @@ public class AddCube : MonoBehaviour {
 		//Parse Data from csv files 
 
 		// ! WINDOWS VS MAC PATH NAMES!!!
-		parseCSV(Application.dataPath+"/Resources");
+		items = CsvParser.ParseCSV(Application.dataPath+"/Resources");
 
         //Get the Obejcts and calculate Stuff
         float areaWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x;
@@ -127,18 +125,18 @@ public class AddCube : MonoBehaviour {
 
         
         //Instantiate 1 cube for every trace
-        for (int i = 0; i < dictList.Count; i++) {
+        for (int i = 0; i < items.Count; i++) {
 			GameObject cubeInstance; 
 			cubeInstance = Instantiate(itemGameObject);
 			//cubeInstance.GetComponent<Renderer> ().material.color = UnityEngine.Random.ColorHSV(0.5f, 0.6f, 0.2f, 1f, 1f, 1f);
 			//cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
             cubeInstance.transform.position = new Vector3(0, -10000, 0);
             cubeInstance.name = "Trace: " + i;
-			cubes.Add (cubeInstance);
 
             float randomOffset = UnityEngine.Random.Range(0, fieldSize-(cubeWidth));
 
-            cubeOffsets.Add(new Vector3(randomOffset, 0, randomOffset));
+            items[i].Cube = cubeInstance;
+            items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
 		}
 	
 		//Cell 0 / 0
@@ -190,43 +188,20 @@ public class AddCube : MonoBehaviour {
         float progress = Math.Abs(step - (Time.time / stepDuration));
 
         int cubeIndex = 0;
-        foreach (Dictionary<int, Vector3> trace in dictList)
+        items.ForEach(item =>
         {
-            if (trace.ContainsKey(step) && trace.ContainsKey(step+1))
+            if (item.Path.ContainsKey(step) && item.Path.ContainsKey(step + 1))
             {
-                Vector3 nextPosition = trace[step]+(trace[step + 1] - trace[step])*progress;
-               
-                cubes[cubeIndex].transform.position = Vector3.Scale(nextPosition, scaleVector) 
-                    + startVector + cubeOffsets[cubeIndex];
+                Vector3 nextPosition = item.Path[step] + (item.Path[step + 1] - item.Path[step]) * progress;
+
+                item.Cube.transform.position = Vector3.Scale(nextPosition, scaleVector)
+                    + startVector + item.Offset;
             }
 
             cubeIndex++;
-        }
+        });
 	}
 		
-	public void parseCSV(string directoryPath) {
-		string[] files = Directory.GetFiles(directoryPath);
-		Dictionary<int, Vector3> itemDict;
-		foreach (string file in files)
-		{
-			if (!file.EndsWith(".csv"))
-				continue;
-
-			itemDict = new Dictionary<int, Vector3>();
-
-			string sFileContents = new StreamReader(File.OpenRead(file)).ReadToEnd();
-
-			string[] sFileLines = sFileContents.Split('\n');
-
-			for (int i = 1; i < sFileLines.Length - 1; i++)
-			{
-				String[] line = sFileLines[i].Split(' ');
-				int time = int.Parse(line[2]);
-
-				itemDict.Add(time, new Vector3() { x = float.Parse(line[0]), y = 1, z = float.Parse(line[1]) });
-			}
-			dictList.Add(itemDict);
-		}	
-	}
+	
 
 }
