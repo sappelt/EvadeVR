@@ -9,6 +9,8 @@ namespace Assets.Scripts
     public class Item
     {
         public GameObject Cube { get; set; }
+        public List<GameObject> PathGameObjects { get; set; }
+
         public Vector3 Offset { get; set; }
 
         public Dictionary<int, Vector3> Path { get; set; }
@@ -18,6 +20,7 @@ namespace Assets.Scripts
         public Item()
         {
             Path = new Dictionary<int, Vector3>();
+            PathGameObjects = new List<GameObject>();
         }
     }
 }
