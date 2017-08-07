@@ -100,25 +100,29 @@ public class AddCube : MonoBehaviour {
             //cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
             cubeInstance.transform.position = new Vector3(0, -10000, 0);
             cubeInstance.name = "Trace: " + i;
+            ItemDetailsHandler detailsHandler = cubeInstance.AddComponent<ItemDetailsHandler>();
+            detailsHandler.Item = items[i];
+            detailsHandler.ItemClicked += DetailsHandler_ItemClicked;
 
             float randomOffset = UnityEngine.Random.Range(0, gameArea.FieldSize - (gameArea.CubeSize));
 
             items[i].Cube = cubeInstance;
             items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
-
-            if (i == 5)
-            {
-                currentSelectedItem = items[i];
-            }
         }
 
         //Cell 0 / 0
     }
 
+    private void DetailsHandler_ItemClicked(object sender, ItemClickedEventArgs e)
+    {
+        Debug.Log("Clicked the item: " + e.Item.ItemName);
+        currentSelectedItem = e.Item;
+    }
+
     private void LoadData()
     {
         // ! WINDOWS VS MAC PATH NAMES!!!
-        items = CsvParser.ParseCSV(Application.dataPath + "/Resources");
+        items = CsvParser.ParseItems(Application.dataPath + "/Resources");
     }
 
     private void InitViveController()
@@ -188,6 +192,7 @@ public class AddCube : MonoBehaviour {
                 //If we completed one step fully, we add a path cube
                 if (isFullStep)
                 {
+                    itemPosition.y = 1;
                     CreatePathCube(itemPosition, item);
                 }
 
@@ -197,12 +202,13 @@ public class AddCube : MonoBehaviour {
             //If one item is selected, hide the others
             if (currentSelectedItem != null && currentSelectedItem.Equals(item))
             {
-                HighlightPath(item.PathGameObjects);
+               // HighlightPath(item.PathGameObjects);
             }
             else
             {
                 //HideCube(item.Cube);
                 //HidePathCubes(item);
+               // UnhighlightPath(item.PathGameObjects);
             }
         });
 	}
@@ -211,7 +217,7 @@ public class AddCube : MonoBehaviour {
     {
         pathGameObjects.ForEach(pathCube => {
             UpdateCubeColor(pathCube, Color.red);
-            SetCubeY(pathCube, 5);
+            SetCubeY(pathCube, 1.1f);
             }
         );
     }
@@ -236,6 +242,14 @@ public class AddCube : MonoBehaviour {
     private void HidePathCubes(Item item)
     {
         item.PathGameObjects.ForEach(cube => HideCube(cube));
+    }
+
+    private void UnhighlightPath(List<GameObject> pathGameObjects)
+    {
+        pathGameObjects.ForEach(pathCube => {
+            UpdateCubeColor(pathCube, Color.white);
+            SetCubeY(pathCube, 1);
+            });
     }
 
     private void CreatePathCube(Vector3 position, Item item)
