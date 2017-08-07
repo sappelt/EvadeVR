@@ -40,6 +40,7 @@ public class AddCube : MonoBehaviour {
 
     bool isPaused = false;
     ViveController viveController;
+    float cubeWidth;
 
 	// Use this for initialization
 	void Start () {
@@ -57,7 +58,7 @@ public class AddCube : MonoBehaviour {
         //Get the Obejcts and calculate Stuff
         float areaWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x;
         fieldSize = areaGameObject.GetComponent<Renderer>().bounds.size.x / 12;
-        float cubeWidth = fieldSize / 2;
+        cubeWidth = fieldSize / 2;
         itemGameObject.transform.localScale = new Vector3(cubeWidth, (float)(fieldSize * 0.05), cubeWidth);
 
         //Random Factor 10, because 10 (Dafuq?!)
@@ -184,7 +185,9 @@ public class AddCube : MonoBehaviour {
             TogglePause();
         }
 
+        int lastStep = step;
 		step = (int)Math.Floor(Time.time / stepDuration);
+        bool isFullStep = (lastStep != step);
         float progress = Math.Abs(step - (Time.time / stepDuration));
 
         int cubeIndex = 0;
@@ -193,15 +196,27 @@ public class AddCube : MonoBehaviour {
             if (item.Path.ContainsKey(step) && item.Path.ContainsKey(step + 1))
             {
                 Vector3 nextPosition = item.Path[step] + (item.Path[step + 1] - item.Path[step]) * progress;
-
-                item.Cube.transform.position = Vector3.Scale(nextPosition, scaleVector)
+                Vector3 itemPosition = Vector3.Scale(nextPosition, scaleVector)
                     + startVector + item.Offset;
+
+                item.Cube.transform.position = itemPosition;
+
+                if (isFullStep)
+                {
+                    CreatePathCube(itemPosition);
+                }
             }
 
             cubeIndex++;
         });
 	}
 		
-	
+	private void CreatePathCube(Vector3 position)
+    {
+        GameObject pathCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        pathCube.GetComponent<Renderer>().material.color = Color.white;
+        pathCube.transform.position = position;
+        pathCube.transform.localScale = new Vector3(cubeWidth, (float)(fieldSize * 0.005), cubeWidth);
+    }
 
 }
