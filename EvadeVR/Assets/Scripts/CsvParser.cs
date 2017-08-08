@@ -69,20 +69,18 @@ namespace Assets.Scripts
         {
             HashSet<Machine> machines = new HashSet<Machine>();
             string sFileContents = new StreamReader(File.OpenRead(Path.Combine(directoryPath, "factory_map10.csv"))).ReadToEnd();
-            string[] sFileLines = sFileContents.Split('\n');
-            for (int i = 1; i < sFileLines.Length - 1; i++)
+            string[] machinePositions = sFileContents.Split(';');
+            int machineIndex = 0;
+            foreach(String machinePosition in machinePositions)
             {
-
-                String[] machinePositions = sFileLines[i].Split(';');
-
-                foreach(String machinePosition in machinePositions)
+                String[] position = machinePosition.Split(',');
+                if (position.Length == 2)
                 {
-                    String[] position = machinePosition.Split(',');
-                    float x = float.Parse(position[0].Replace('(', ' '). Replace(')', ' ').Trim());
+                    float x = float.Parse(position[0].Replace('(', ' ').Replace(')', ' ').Trim());
                     float y = float.Parse(position[1].Replace('(', ' ').Replace(')', ' ').Trim());
-                    machines.Add(new Machine() { Position = new Vector3(x, 1, y), Name = "Machine " + (i - 1).ToString() });
+                    machines.Add(new Machine() { Position = new Vector3(x, 1, y), Name = "Machine " + (machineIndex).ToString() });
+                    machineIndex++;
                 }
-                
             }
 
             return machines;
