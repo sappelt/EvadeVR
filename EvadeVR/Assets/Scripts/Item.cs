@@ -16,11 +16,13 @@ namespace Assets.Scripts
         public Dictionary<int, Vector3> Path { get; set; }
 
         public String ItemName { get; set; }
+        public HashSet<String> Machines { get; set; }
 
         public Item()
         {
             Path = new Dictionary<int, Vector3>();
             PathGameObjects = new List<GameObject>();
+            Machines = new HashSet<string>();
         }
     }
 }
