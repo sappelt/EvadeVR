@@ -21,13 +21,15 @@ public class AddCube : MonoBehaviour {
     private int step = 0;
     float progress;
     bool isPaused = false;
+    float startTime = 0;
+    float gameTime = 0;
     ViveController viveController;
     Item currentSelectedItem;
     GameArea gameArea;
 
     public List<Item> Items = new List<Item>();
     HashSet<Machine> machines = new HashSet<Machine>();
-   
+  
     
 
 	// Use this for initialization
@@ -143,10 +145,16 @@ public class AddCube : MonoBehaviour {
             TogglePause();
         }
 
+        if (Input.GetKeyUp(KeyCode.S))
+        {
+            ResetTime();
+        }
+
+        gameTime = Time.time - startTime;
         int lastStep = step;
-		step = (int)Math.Floor(Time.time / stepDuration);
+		step = (int)Math.Floor(gameTime / stepDuration);
         bool isFullStep = (lastStep != step);
-        progress = Math.Abs(step - (Time.time / stepDuration));
+        progress = Math.Abs(step - (gameTime / stepDuration));
         
         setTimeStepOnCanvas();
 
@@ -180,6 +188,47 @@ public class AddCube : MonoBehaviour {
             }
         });
 	}
+
+    private void ResetTime()
+    {
+        //Jump to timestep 0
+        TravelInTime(0);
+    }
+
+    private void TravelInTime(int step)
+    {
+        startTime = Time.time - step * stepDuration;
+
+        if (Time.time - startTime < 0)
+        {
+            startTime = 0;
+        }
+        HideItems(step);
+    }
+
+    private void HideItems(int step)
+    {
+        Items.ForEach(item =>
+        {
+            //Hide all cubes and paths
+            HideCube(item.Cube);
+            item.PathGameObjects.ForEach(pathCube => Destroy(pathCube));
+            item.PathGameObjects.Clear();
+
+            //Add Cubes and Paths again (that have a position < step)
+            for(int time = 0; time < step; time++)
+            {
+                if(item.Path.ContainsKey(time))
+                {
+                    Vector3 position = Vector3.Scale(item.Path[time], gameArea.MovementVector)
+                    + gameArea.StartVector + item.Offset;
+
+                    item.Cube.transform.position = position;
+                    CreatePathCube(position, item);
+                }
+            }
+        });
+    }
 
     //update text on Canvas for each timestep
     public void setTimeStepOnCanvas()
