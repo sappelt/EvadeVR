@@ -171,8 +171,9 @@ public class AddCube : MonoBehaviour {
             //If one item is selected, hide the others
             if (currentSelectedItem != null && currentSelectedItem.Equals(item))
             {
-            }            else
-            {
+                HighlightPath(item.PathGameObjects);
+            }
+            else {
                 //HideCube(item.Cube);
                 //HidePathCubes(item);
                 UnhighlightPath(item.PathGameObjects);
