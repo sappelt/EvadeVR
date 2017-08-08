@@ -9,11 +9,13 @@ public class ViveController : MonoBehaviour {
     public delegate void ClickedHandler(object sender, ClickedEventArgs e);
     public delegate void PointerInHandler(object sender, PointerEventArgs e);
     public delegate void PointerOutHandler(object sender, PointerEventArgs e);
+    public delegate void MenuHandler(object sender, ClickedEventArgs e);
 
     public event ClickedHandler TriggerClicked;
     public event ClickedHandler PadClicked;
     public event PointerInHandler PointerIn;
     public event PointerOutHandler PointerOut;
+    public event MenuHandler MenuClickedHandler;
 
     bool triggerPressed = false;
 
@@ -31,6 +33,13 @@ public class ViveController : MonoBehaviour {
         trackedController = gameObject.GetComponent<SteamVR_TrackedController>();
         trackedController.TriggerClicked += TrackedController_TriggerClicked;
         trackedController.PadClicked += TrackedController_PadClicked;
+
+        trackedController.MenuButtonClicked += TrackedController_MenuButtonClicked;
+    }
+
+    private void TrackedController_MenuButtonClicked(object sender, ClickedEventArgs e)
+    {
+        MenuClickedHandler(sender, e);
     }
 
     private void TrackedController_PadClicked(object sender, ClickedEventArgs e)

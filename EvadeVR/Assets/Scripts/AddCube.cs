@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AddCube : MonoBehaviour {
 
+    public GameObject timeStepText;
 	public GameObject itemGameObject;
     public GameObject machineGameObject;
     public GameObject viveLeftController;
@@ -17,12 +19,13 @@ public class AddCube : MonoBehaviour {
 	public int rows = 12;
 	public int columns = 12;
     private int step = 0;
+    float progress;
     bool isPaused = false;
     ViveController viveController;
     Item currentSelectedItem;
     GameArea gameArea;
 
-    List<Item> items = new List<Item>();
+    public List<Item> Items = new List<Item>();
     HashSet<Machine> machines = new HashSet<Machine>();
    
     
@@ -41,7 +44,7 @@ public class AddCube : MonoBehaviour {
     private void CreateItems()
     {
         //Instantiate 1 cube for every trace
-        for (int i = 0; i < items.Count; i++)
+        for (int i = 0; i < Items.Count; i++)
         {
             GameObject cubeInstance;
             cubeInstance = Instantiate(itemGameObject);
@@ -50,13 +53,13 @@ public class AddCube : MonoBehaviour {
             cubeInstance.transform.position = new Vector3(0, -10000, 0);
             cubeInstance.name = "Trace: " + i;
             ItemDetailsHandler detailsHandler = cubeInstance.AddComponent<ItemDetailsHandler>();
-            detailsHandler.Item = items[i];
+            detailsHandler.Item = Items[i];
             detailsHandler.ItemClicked += DetailsHandler_ItemClicked;
 
             float randomOffset = UnityEngine.Random.Range(0, gameArea.FieldSize - (gameArea.CubeSize));
 
-            items[i].Cube = cubeInstance;
-            items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
+            Items[i].Cube = cubeInstance;
+            Items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
         }
     }
 
@@ -85,7 +88,7 @@ public class AddCube : MonoBehaviour {
     private void LoadData()
     {
         // ! WINDOWS VS MAC PATH NAMES!!!
-        items = CsvParser.ParseItems(Application.dataPath + "/Resources");
+        Items = CsvParser.ParseItems(Application.dataPath + "/Resources");
         machines = CsvParser.ReadMachineVars(Application.dataPath + "/Resources");
     }
 
@@ -143,9 +146,11 @@ public class AddCube : MonoBehaviour {
         int lastStep = step;
 		step = (int)Math.Floor(Time.time / stepDuration);
         bool isFullStep = (lastStep != step);
-        float progress = Math.Abs(step - (Time.time / stepDuration));
+        progress = Math.Abs(step - (Time.time / stepDuration));
+        
+        setTimeStepOnCanvas();
 
-        items.ForEach(item =>
+        Items.ForEach(item =>
         {
             if (item.Path.ContainsKey(step) && item.Path.ContainsKey(step + 1))
             {
@@ -166,9 +171,7 @@ public class AddCube : MonoBehaviour {
             //If one item is selected, hide the others
             if (currentSelectedItem != null && currentSelectedItem.Equals(item))
             {
-                HighlightPath(item.PathGameObjects);
-            }
-            else
+            }            else
             {
                 //HideCube(item.Cube);
                 //HidePathCubes(item);
@@ -176,6 +179,15 @@ public class AddCube : MonoBehaviour {
             }
         });
 	}
+
+    //update text on Canvas for each timestep
+    public void setTimeStepOnCanvas()
+    {
+        String timeStep = (step + progress).ToString("0.00");
+        Text text = timeStepText.GetComponent<Text>();
+        text.text = timeStep;
+    }
+
 
     private void HighlightPath(List<GameObject> pathGameObjects)
     {
