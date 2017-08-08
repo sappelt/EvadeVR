@@ -52,8 +52,40 @@ namespace Assets.Scripts
             string[] sFileLines = sFileContents.Split('\n');
             for (int i = 1; i < sFileLines.Length - 1; i++)
             {
-                String[] line = sFileLines[i].Split(',');
+
+                String[] line = sFileLines[i].Split(';');
+
+                int itemIndex = Int32.Parse(line[1]);
+                //These are the comma separated machines
+                String[] machines = line[2].Split(',');
+                foreach(string machine in machines)
+                {
+                    items[itemIndex].Machines.Add(machine.Replace('[', ' ').Replace(']', ' ').Trim());
+                }
             }
+        }
+
+        public static HashSet<Machine> ReadMachineVars(String directoryPath)
+        {
+            HashSet<Machine> machines = new HashSet<Machine>();
+            string sFileContents = new StreamReader(File.OpenRead(Path.Combine(directoryPath, "factory_map10.csv"))).ReadToEnd();
+            string[] sFileLines = sFileContents.Split('\n');
+            for (int i = 1; i < sFileLines.Length - 1; i++)
+            {
+
+                String[] machinePositions = sFileLines[i].Split(';');
+
+                foreach(String machinePosition in machinePositions)
+                {
+                    String[] position = machinePosition.Split(',');
+                    float x = float.Parse(position[0].Replace('(', ' '). Replace(')', ' ').Trim());
+                    float y = float.Parse(position[1].Replace('(', ' ').Replace(')', ' ').Trim());
+                    machines.Add(new Machine() { Position = new Vector3(x, 1, y), Name = "Machine " + (i - 1).ToString() });
+                }
+                
+            }
+
+            return machines;
         }
     }
 }

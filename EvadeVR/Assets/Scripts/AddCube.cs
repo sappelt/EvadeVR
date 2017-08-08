@@ -23,7 +23,7 @@ public class AddCube : MonoBehaviour {
     GameArea gameArea;
 
     List<Item> items = new List<Item>();
-
+    HashSet<Machine> machines = new HashSet<Machine>();
    
     
 
@@ -34,63 +34,12 @@ public class AddCube : MonoBehaviour {
         LoadData();
         gameArea = new GameArea(areaGameObject);
         itemGameObject.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.05), gameArea.CubeSize);
-       
+        CreateMachines();
+        CreateItems();
+    }
 
-        //Draw Machines/Sources/Sinks
-        //TODO: Read from file (not hardcoded shit) and shorten obviously
-        int[][] machines =
-        {
-            new int[] {7,6},
-            new int[] {4,11},
-            new int[] {6,0},
-            new int[] {5,3},
-            new int[] {10,10},
-            new int[] {3,3},
-        };
-        int[][] sources =
-        {
-            new int[] {0,1},
-            new int[] {0,4},
-            new int[] {0,7},
-            new int[] {0,10}
-        };
-        int[][] sinks =
-        {
-            new int[] {11,1},
-            new int[] {11,4},
-            new int[] {11,7},
-            new int[] {11,10}
-        };
-        float machineSize = (float)(gameArea.FieldSize * (1 / 1800.0));
-        foreach (int[] machine in machines)
-        {
-            GameObject machineInstace;
-            machineInstace = Instantiate(machineGameObject);
-
-            //machineInstace.GetComponent<Renderer>().material.color = Color.red;
-            machineInstace.transform.position = Vector3.Scale((new Vector3(machine[0], 1, machine[1])), gameArea.MovementVector) 
-                + gameArea.StartVector;
-            machineInstace.transform.localScale = new Vector3(machineSize, machineSize, machineSize);
-            machineInstace.name = "Machine: " + "(" + machine[0] + "," + machine[1] + ")";
-        }
-        //foreach (int[] source in sources)
-        //{
-        //    GameObject cubeInstance;
-        //    cubeInstance = Instantiate(itemGameObject);
-        //    cubeInstance.GetComponent<Renderer>().material.color = Color.white;
-        //    cubeInstance.transform.position = Vector3.Scale((new Vector3(source[0], 1, source[1])), scaleVector) + startVector;
-        //    cubeInstance.name = "Source: " + "(" + source[0] + "," + source[1] + ")";
-        //}
-        //foreach (int[] sink in sinks)
-        //{
-        //    GameObject cubeInstance;
-        //    cubeInstance = Instantiate(itemGameObject);
-        //    cubeInstance.GetComponent<Renderer>().material.color = Color.black;
-        //    cubeInstance.transform.position = Vector3.Scale((new Vector3(sink[0], 1, sink[1])), scaleVector) + startVector;
-        //    cubeInstance.name = "Sink: " + "(" + sink[0] + "," + sink[1] + ")";
-        //}
-
-
+    private void CreateItems()
+    {
         //Instantiate 1 cube for every trace
         for (int i = 0; i < items.Count; i++)
         {
@@ -109,8 +58,22 @@ public class AddCube : MonoBehaviour {
             items[i].Cube = cubeInstance;
             items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
         }
+    }
 
-        //Cell 0 / 0
+    private void CreateMachines()
+    {
+        float machineSize = (float)(gameArea.FieldSize * (1 / 1800.0));
+        foreach (Machine machine in machines)
+        {
+            GameObject machineInstace;
+            machineInstace = Instantiate(machineGameObject);
+
+            //machineInstace.GetComponent<Renderer>().material.color = Color.red;
+            machineInstace.transform.position = Vector3.Scale((new Vector3(machine.Position.x, 1, machine.Position.z)), 
+                gameArea.MovementVector) + gameArea.StartVector;
+            machineInstace.transform.localScale = new Vector3(machineSize, machineSize, machineSize);
+            machineInstace.name = machine.Name;
+        }
     }
 
     private void DetailsHandler_ItemClicked(object sender, ItemClickedEventArgs e)
@@ -123,6 +86,7 @@ public class AddCube : MonoBehaviour {
     {
         // ! WINDOWS VS MAC PATH NAMES!!!
         items = CsvParser.ParseItems(Application.dataPath + "/Resources");
+        machines = CsvParser.ReadMachineVars(Application.dataPath + "/Resources");
     }
 
     private void InitViveController()
@@ -202,13 +166,13 @@ public class AddCube : MonoBehaviour {
             //If one item is selected, hide the others
             if (currentSelectedItem != null && currentSelectedItem.Equals(item))
             {
-               // HighlightPath(item.PathGameObjects);
+                HighlightPath(item.PathGameObjects);
             }
             else
             {
                 //HideCube(item.Cube);
                 //HidePathCubes(item);
-               // UnhighlightPath(item.PathGameObjects);
+                UnhighlightPath(item.PathGameObjects);
             }
         });
 	}
