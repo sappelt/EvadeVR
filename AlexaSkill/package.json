@@ -1,0 +1,16 @@
+{
+  "name": "evade-alexa",
+  "version": "0.0.1",
+  "description": "evade alexa skill",
+  "author": {
+    "name": "Sebastian Appelt",
+    "email": "sebastian.appelt@campus.lmu.de"
+  },
+  "dependencies": {
+    "socket.io-client": "^2.0.3"
+  },
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
