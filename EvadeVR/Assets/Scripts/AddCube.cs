@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AddCube : MonoBehaviour {
 
+    public GameObject timeStepText;
 	public GameObject itemGameObject;
     public GameObject machineGameObject;
     public GameObject viveLeftController;
@@ -17,12 +19,13 @@ public class AddCube : MonoBehaviour {
 	public int rows = 12;
 	public int columns = 12;
     private int step = 0;
+    float progress;
     bool isPaused = false;
     ViveController viveController;
     Item currentSelectedItem;
     GameArea gameArea;
 
-    List<Item> items = new List<Item>();
+    public List<Item> Items = new List<Item>();
 
    
     
@@ -92,7 +95,7 @@ public class AddCube : MonoBehaviour {
 
 
         //Instantiate 1 cube for every trace
-        for (int i = 0; i < items.Count; i++)
+        for (int i = 0; i < Items.Count; i++)
         {
             GameObject cubeInstance;
             cubeInstance = Instantiate(itemGameObject);
@@ -100,25 +103,29 @@ public class AddCube : MonoBehaviour {
             //cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
             cubeInstance.transform.position = new Vector3(0, -10000, 0);
             cubeInstance.name = "Trace: " + i;
+            ItemDetailsHandler detailsHandler = cubeInstance.AddComponent<ItemDetailsHandler>();
+            detailsHandler.Item = Items[i];
+            detailsHandler.ItemClicked += DetailsHandler_ItemClicked;
 
             float randomOffset = UnityEngine.Random.Range(0, gameArea.FieldSize - (gameArea.CubeSize));
 
-            items[i].Cube = cubeInstance;
-            items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
-
-            if (i == 5)
-            {
-                currentSelectedItem = items[i];
-            }
+            Items[i].Cube = cubeInstance;
+            Items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
         }
 
         //Cell 0 / 0
     }
 
+    private void DetailsHandler_ItemClicked(object sender, ItemClickedEventArgs e)
+    {
+        Debug.Log("Clicked the item: " + e.Item.ItemName);
+        currentSelectedItem = e.Item;
+    }
+
     private void LoadData()
     {
         // ! WINDOWS VS MAC PATH NAMES!!!
-        items = CsvParser.ParseCSV(Application.dataPath + "/Resources");
+        Items = CsvParser.ParseItems(Application.dataPath + "/Resources");
     }
 
     private void InitViveController()
@@ -175,9 +182,11 @@ public class AddCube : MonoBehaviour {
         int lastStep = step;
 		step = (int)Math.Floor(Time.time / stepDuration);
         bool isFullStep = (lastStep != step);
-        float progress = Math.Abs(step - (Time.time / stepDuration));
+        progress = Math.Abs(step - (Time.time / stepDuration));
+        
+        setTimeStepOnCanvas();
 
-        items.ForEach(item =>
+        Items.ForEach(item =>
         {
             if (item.Path.ContainsKey(step) && item.Path.ContainsKey(step + 1))
             {
@@ -188,6 +197,7 @@ public class AddCube : MonoBehaviour {
                 //If we completed one step fully, we add a path cube
                 if (isFullStep)
                 {
+                    itemPosition.y = 1;
                     CreatePathCube(itemPosition, item);
                 }
 
@@ -197,21 +207,30 @@ public class AddCube : MonoBehaviour {
             //If one item is selected, hide the others
             if (currentSelectedItem != null && currentSelectedItem.Equals(item))
             {
-                //HighlightPath(item.PathGameObjects);
-            }
+                HighlightPath(item.PathGameObjects);            }
             else
             {
                 //HideCube(item.Cube);
                 //HidePathCubes(item);
+               // UnhighlightPath(item.PathGameObjects);
             }
         });
 	}
+
+    //update text on Canvas for each timestep
+    public void setTimeStepOnCanvas()
+    {
+        String timeStep = (step + progress).ToString("0.00");
+        Text text = timeStepText.GetComponent<Text>();
+        text.text = timeStep;
+    }
+
 
     private void HighlightPath(List<GameObject> pathGameObjects)
     {
         pathGameObjects.ForEach(pathCube => {
             UpdateCubeColor(pathCube, Color.red);
-            SetCubeY(pathCube, 5);
+            SetCubeY(pathCube, 1.1f);
             }
         );
     }
@@ -236,6 +255,14 @@ public class AddCube : MonoBehaviour {
     private void HidePathCubes(Item item)
     {
         item.PathGameObjects.ForEach(cube => HideCube(cube));
+    }
+
+    private void UnhighlightPath(List<GameObject> pathGameObjects)
+    {
+        pathGameObjects.ForEach(pathCube => {
+            UpdateCubeColor(pathCube, Color.white);
+            SetCubeY(pathCube, 1);
+            });
     }
 
     private void CreatePathCube(Vector3 position, Item item)
