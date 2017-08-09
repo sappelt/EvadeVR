@@ -1,0 +1,7 @@
+{
+  "lambda": {
+    "role": "evade-alexa-executor",
+    "name": "evade-alexa",
+    "region": "us-east-1"
+  }
+}
