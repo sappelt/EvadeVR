@@ -10,6 +10,7 @@ namespace Assets.Scripts
     {
         public GameObject Cube { get; set; }
         public List<GameObject> PathGameObjects { get; set; }
+        public int ProductionStep { get; set; }
 
         public Vector3 Offset { get; set; }
 

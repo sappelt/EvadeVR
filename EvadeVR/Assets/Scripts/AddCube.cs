@@ -1,4 +1,5 @@
-﻿using Assets.Scripts;
+﻿using Assets;
+using Assets.Scripts;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ public class AddCube : MonoBehaviour {
     GameArea gameArea;
 
     public List<Item> Items = new List<Item>();
-    Dictionary<Vector3, Machine> machines = new Dictionary<Vector3, Machine>();
+    Dictionary<PositionKey, Machine> machines = new Dictionary<PositionKey, Machine>();
   
 	// Use this for initialization
 	void Start ()
@@ -189,6 +190,7 @@ public class AddCube : MonoBehaviour {
                 if(nextStep == -1)
                     return;
 
+                PositionKey key = new PositionKey((int)item.Path[step].x, (int)item.Path[step].z);
                 Vector3 nextPosition = item.Path[step] + (item.Path[nextStep] - item.Path[step]) * progress;
                 Vector3 itemPosition = Vector3.Scale(nextPosition, gameArea.MovementVector)
                     + gameArea.StartVector + item.Offset;
@@ -208,7 +210,7 @@ public class AddCube : MonoBehaviour {
                         CreatePathCube(firstPathVector, item);
                     }
 
-                    //CheckUpdateModel(item, nextPosition);
+                    CheckUpdateModel(item, key, nextPosition);
                 }
 
                 item.Cube.transform.position = itemPosition;
@@ -227,12 +229,14 @@ public class AddCube : MonoBehaviour {
         });
 	}
 
-    private void CheckUpdateModel(Item item, Vector3 position)
+    private void CheckUpdateModel(Item item, PositionKey key, Vector3 position)
     {
-        position.y = 1;
-        if (machines.ContainsKey(position))
+
+        if (machines.ContainsKey(key))
         {
-            int itemGameObjectIndex = machines[position].Type % itemGameObjects.Count;
+            item.ProductionStep++;
+            int itemGameObjectIndex = Math.Min(item.ProductionStep, itemGameObjects.Count-1);
+          
             Destroy(item.Cube);
             CreateItemGameObject(item, itemGameObjects[itemGameObjectIndex]);
             item.Cube.transform.position = position;
