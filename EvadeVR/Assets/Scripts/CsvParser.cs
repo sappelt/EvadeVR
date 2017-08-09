@@ -65,9 +65,9 @@ namespace Assets.Scripts
             }
         }
 
-        public static HashSet<Machine> ReadMachineVars(String directoryPath)
+        public static Dictionary<Vector3, Machine> ReadMachineVars(String directoryPath)
         {
-            HashSet<Machine> machines = new HashSet<Machine>();
+            Dictionary<Vector3, Machine> machines = new Dictionary<Vector3, Machine>();
             string sFileContents = new StreamReader(File.OpenRead(Path.Combine(directoryPath, "factory_map10.csv"))).ReadToEnd();
             string[] machinePositions = sFileContents.Split(';');
             int machineIndex = 0;
@@ -79,11 +79,19 @@ namespace Assets.Scripts
                     float x = float.Parse(position[0].Replace('(', ' ').Replace(')', ' ').Trim());
                     float y = float.Parse(position[1].Replace('(', ' ').Replace(')', ' ').Trim());
                     int type = Int32.Parse(position[2]);
-                    machines.Add(new Machine() {
-                        Position = new Vector3(x, 1, y),
-                        Name = "Machine " + (machineIndex).ToString(),
-                        Type =type });
-                    machineIndex++;
+                    Vector3 vectorPosition = new Vector3(x, 1, y);
+
+                    if (!machines.ContainsKey(vectorPosition))
+                    {
+                        machines.Add(vectorPosition, new Machine()
+                        {
+                            Position = vectorPosition,
+                            Name = "Machine " + (machineIndex).ToString(),
+                            Type = type
+                        });
+                        machineIndex++;
+                    }
+                    
                 }
             }
 

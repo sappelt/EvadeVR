@@ -22,13 +22,13 @@ namespace Assets.Scripts
 
             Machine other = (Machine)obj;
 
-            return Name.Equals(other) && Position.Equals(other);
+            return Position.Equals(other);
         }
 
         // override object.GetHashCode
         public override int GetHashCode()
         {
-            return Name.GetHashCode()^ Position.GetHashCode();
+            return Position.GetHashCode();
         }
     }
 }

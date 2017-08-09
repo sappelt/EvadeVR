@@ -11,7 +11,7 @@ using UnityEngine.UI;
 public class AddCube : MonoBehaviour {
 
     public GameObject timeStepText;
-	public GameObject itemGameObject;
+	public List<GameObject> itemGameObjects;
     public List<GameObject> machineGameObjects;
     public GameObject viveLeftController;
     public GameObject areaGameObject;
@@ -29,7 +29,7 @@ public class AddCube : MonoBehaviour {
     GameArea gameArea;
 
     public List<Item> Items = new List<Item>();
-    HashSet<Machine> machines = new HashSet<Machine>();
+    Dictionary<Vector3, Machine> machines = new Dictionary<Vector3, Machine>();
   
 	// Use this for initialization
 	void Start ()
@@ -37,10 +37,14 @@ public class AddCube : MonoBehaviour {
         InitViveController();
         LoadData();
         gameArea = new GameArea(areaGameObject);
-        itemGameObject.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.05), gameArea.CubeSize);
+        foreach(GameObject itemGameObject in itemGameObjects)
+        {
+            itemGameObject.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.05), gameArea.CubeSize);
+        }
+        
         CreateMachines();
         CreateItems();
-       
+        
     }
 
     private void CreateItems()
@@ -48,28 +52,30 @@ public class AddCube : MonoBehaviour {
         //Instantiate 1 cube for every trace
         for (int i = 0; i < Items.Count; i++)
         {
-            GameObject cubeInstance;
-            cubeInstance = Instantiate(itemGameObject);
-            //cubeInstance.GetComponent<Renderer> ().material.color = UnityEngine.Random.ColorHSV(0.5f, 0.6f, 0.2f, 1f, 1f, 1f);
-            //cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
-            cubeInstance.transform.position = new Vector3(0, -10000, 0);
-            cubeInstance.name = "Trace: " + i;
-            ItemDetailsHandler detailsHandler = cubeInstance.AddComponent<ItemDetailsHandler>();
-            detailsHandler.Item = Items[i];
-            detailsHandler.ItemClicked += DetailsHandler_ItemClicked;
-
-            float randomOffset = UnityEngine.Random.Range(0, gameArea.FieldSize - (gameArea.CubeSize));
-
-            Items[i].Cube = cubeInstance;
-            Items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
+            CreateItemGameObject(Items[i], itemGameObjects[0]);
         }
+    }
+
+    private void CreateItemGameObject(Item item, GameObject itemGameObject)
+    {
+        GameObject cubeInstance = Instantiate(itemGameObject);
+        cubeInstance.transform.position = new Vector3(0, -10000, 0);
+        cubeInstance.name = "Trace: " + item.ItemName;
+        ItemDetailsHandler detailsHandler = cubeInstance.AddComponent<ItemDetailsHandler>();
+        detailsHandler.Item = item;
+        detailsHandler.ItemClicked += DetailsHandler_ItemClicked;
+
+        float randomOffset = UnityEngine.Random.Range(0, gameArea.FieldSize - (gameArea.CubeSize));
+
+        item.Cube = cubeInstance;
+        item.Offset = new Vector3(randomOffset, 0, randomOffset);
     }
 
     private void CreateMachines()
     {
         float machineSize = gameArea.FieldSize;
 
-        foreach (Machine machine in machines)
+        foreach (Machine machine in machines.Values)
         {
             GameObject machineInstace;
 
@@ -190,7 +196,6 @@ public class AddCube : MonoBehaviour {
                 //If we completed one step fully, we add a path cube
                 if (isFullStep)
                 {
-                    itemPosition.y = 1;
                     CreatePathCube(itemPosition, item);
 
                     int itemFirstStep = item.Path.Keys.First();
@@ -202,6 +207,8 @@ public class AddCube : MonoBehaviour {
 
                         CreatePathCube(firstPathVector, item);
                     }
+
+                    //CheckUpdateModel(item, nextPosition);
                 }
 
                 item.Cube.transform.position = itemPosition;
@@ -219,6 +226,18 @@ public class AddCube : MonoBehaviour {
             }
         });
 	}
+
+    private void CheckUpdateModel(Item item, Vector3 position)
+    {
+        position.y = 1;
+        if (machines.ContainsKey(position))
+        {
+            int itemGameObjectIndex = machines[position].Type % itemGameObjects.Count;
+            Destroy(item.Cube);
+            CreateItemGameObject(item, itemGameObjects[itemGameObjectIndex]);
+            item.Cube.transform.position = position;
+        }
+    }
 
     private int GetNextStep(Item item, int step)
     {
@@ -324,7 +343,8 @@ public class AddCube : MonoBehaviour {
     private void CreatePathCube(Vector3 position, Item item)
     {
         GameObject pathCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        pathCube.transform.position = position;
+        Vector3 pathPosition = new Vector3(position.x, 1, position.z);
+        pathCube.transform.position = pathPosition;
         pathCube.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.005), gameArea.CubeSize);
 
         UpdateCubeColor(pathCube, Color.white);

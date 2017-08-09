@@ -16,13 +16,13 @@ namespace Assets.Scripts
         public SortedDictionary<int, Vector3> Path { get; set; }
 
         public String ItemName { get; set; }
-        public HashSet<String> Machines { get; set; }
+        public List<String> Machines { get; set; }
 
         public Item()
         {
             Path = new SortedDictionary<int, Vector3>();
             PathGameObjects = new List<GameObject>();
-            Machines = new HashSet<string>();
+            Machines = new List<string>();
         }
     }
 }
