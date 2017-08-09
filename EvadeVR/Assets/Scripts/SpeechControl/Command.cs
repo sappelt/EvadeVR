@@ -13,6 +13,7 @@ namespace Assets.Scripts.SpeechControl
         SwitchCamera,
         ToggleHeatmap,
         ShowItemDetails,
-        JumpToTime
+        JumpToTime,
+        ShowItemMenu
     }
 }

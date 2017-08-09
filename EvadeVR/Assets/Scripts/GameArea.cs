@@ -20,13 +20,13 @@ namespace Assets.Scripts
         {
             AreaGameObject = areaGameObject;
             //Get the Obejcts and calculate Stuff
-            AreaWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x;
-            FieldSize = areaGameObject.GetComponent<Renderer>().bounds.size.x / 12;
+            AreaWidth = areaGameObject.GetComponent<Renderer>().bounds.size.x - 15;
+            FieldSize = AreaWidth / 12;
             CubeSize = FieldSize / 2;
             
             //Init start coordinates
             float startX = areaGameObject.transform.position.x - (AreaWidth / 2) + FieldSize / 2;
-            float startZ = areaGameObject.transform.position.z - (AreaWidth / 2) + FieldSize / 2;
+            float startZ = areaGameObject.transform.position.z - (AreaWidth / 2);
             float startY = FieldSize / 2;
 
             //Get the Prototype Cube and Calculate Values

@@ -179,6 +179,24 @@ function getToggleHeatmapResponse(intentRequest, session,callback) {
     });    
 }
 
+function getShowItemListResponse(intentRequest, session,callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
+    const sessionAttributes = {};
+    const cardTitle = 'Show item menu';
+    const speechOutput = 'Item menu displayed';
+    // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    const repromptText = speechOutput;
+    const shouldEndSession = false;
+
+    sendCommand({ 
+        "commandType": "ShowItemMenu", 
+    }, function() {
+        callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    });    
+}
+
 function getJumpToTimeDetailsResponse(intentRequest, session, callback) {
     const sessionAttributes = {};
     const cardTitle = 'Jump to timestep';
@@ -316,6 +334,9 @@ function onIntent(intentRequest, session, callback) {
     }
     else if(intentName === "ShowItemDetails") {
         getShowItemDetailsResponse(intentRequest, session, callback);
+    }
+    else if(intentName === "ShowItemList") {
+        getShowItemListResponse(intentRequest, session, callback);
     }
     else if (intentName === 'AMAZON.HelpIntent') {
         getWelcomeResponse(callback);

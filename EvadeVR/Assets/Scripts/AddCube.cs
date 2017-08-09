@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,11 +12,10 @@ public class AddCube : MonoBehaviour {
 
     public GameObject timeStepText;
 	public GameObject itemGameObject;
-    public GameObject machineGameObject;
+    public List<GameObject> machineGameObjects;
     public GameObject viveLeftController;
     public GameObject areaGameObject;
 
-    private LineRenderer lineRenderer;
     public float stepDuration = 0.2f;
 	public int rows = 12;
 	public int columns = 12;
@@ -40,7 +40,6 @@ public class AddCube : MonoBehaviour {
         itemGameObject.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.05), gameArea.CubeSize);
         CreateMachines();
         CreateItems();
-        lineRenderer = lineRenderer.GetComponent<LineRenderer>();
        
     }
 
@@ -68,16 +67,20 @@ public class AddCube : MonoBehaviour {
 
     private void CreateMachines()
     {
-        float machineSize = (float)(gameArea.FieldSize * (1 / 1800.0));
+        float machineSize = gameArea.FieldSize;
+
         foreach (Machine machine in machines)
         {
             GameObject machineInstace;
-            machineInstace = Instantiate(machineGameObject);
+
+            //Different machine model for different machine type
+            int modelIndex = machine.Type % machineGameObjects.Count;
+            machineInstace = Instantiate(machineGameObjects[modelIndex]);
 
             //machineInstace.GetComponent<Renderer>().material.color = Color.red;
             machineInstace.transform.position = Vector3.Scale((new Vector3(machine.Position.x, 1, machine.Position.z)), 
                 gameArea.MovementVector) + gameArea.StartVector;
-            machineInstace.transform.localScale = new Vector3(machineSize, machineSize, machineSize);
+            //machineInstace.transform.localScale = new Vector3(machineSize, machineSize, machineSize);
             machineInstace.name = machine.Name;
         }
     }
@@ -174,21 +177,31 @@ public class AddCube : MonoBehaviour {
 
         Items.ForEach(item =>
         {
-            if (item.Path.ContainsKey(step) && item.Path.ContainsKey(step + 1))
+            if (item.Path.ContainsKey(step))
             {
-                Vector3 nextPosition = item.Path[step] + (item.Path[step + 1] - item.Path[step]) * progress;
+                int nextStep = GetNextStep(item, step);
+                if(nextStep == -1)
+                    return;
+
+                Vector3 nextPosition = item.Path[step] + (item.Path[nextStep] - item.Path[step]) * progress;
                 Vector3 itemPosition = Vector3.Scale(nextPosition, gameArea.MovementVector)
                     + gameArea.StartVector + item.Offset;
-
-                lineRenderer.SetPosition(0, itemPosition);
-                lineRenderer.SetPosition(1, nextPosition);
-                lineRenderer.SetWidth(45.0f, 45.0f);
 
                 //If we completed one step fully, we add a path cube
                 if (isFullStep)
                 {
                     itemPosition.y = 1;
                     CreatePathCube(itemPosition, item);
+
+                    int itemFirstStep = item.Path.Keys.First();
+                    //Create a path for the first waypoint
+                    if(itemFirstStep == step-1)
+                    {
+                        Vector3 firstPathVector = Vector3.Scale(item.Path[itemFirstStep], gameArea.MovementVector)
+                    + gameArea.StartVector + item.Offset;
+
+                        CreatePathCube(firstPathVector, item);
+                    }
                 }
 
                 item.Cube.transform.position = itemPosition;
@@ -206,6 +219,18 @@ public class AddCube : MonoBehaviour {
             }
         });
 	}
+
+    private int GetNextStep(Item item, int step)
+    {
+       int lastKey = item.Path.Keys.Last();
+        
+        for(int i = step+1; i < lastKey; i++)
+        {
+            if (item.Path.ContainsKey(i))
+                return i;
+        }
+        return -1;
+    }
 
     public void ResetTime()
     {

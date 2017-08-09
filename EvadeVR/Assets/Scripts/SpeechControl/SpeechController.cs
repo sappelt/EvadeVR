@@ -52,6 +52,8 @@ public class SpeechController : MonoBehaviour {
                             GameArea.TravelInTime(timeStep);
                         }
                         break;
+                    case Command.ShowItemMenu:
+                        throw new NotImplementedException();
                 }
             }
         }
