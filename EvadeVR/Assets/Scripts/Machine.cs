@@ -10,6 +10,7 @@ namespace Assets.Scripts
     {
         public Vector3 Position { get; set; }
         public String Name { get; set; }
+        public int Type { get; set; }
 
         // override object.Equals
         public override bool Equals(object obj)

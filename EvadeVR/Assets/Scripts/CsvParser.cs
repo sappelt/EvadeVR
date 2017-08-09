@@ -74,11 +74,15 @@ namespace Assets.Scripts
             foreach(String machinePosition in machinePositions)
             {
                 String[] position = machinePosition.Split(',');
-                if (position.Length == 2)
+                if (position.Length == 3)
                 {
                     float x = float.Parse(position[0].Replace('(', ' ').Replace(')', ' ').Trim());
                     float y = float.Parse(position[1].Replace('(', ' ').Replace(')', ' ').Trim());
-                    machines.Add(new Machine() { Position = new Vector3(x, 1, y), Name = "Machine " + (machineIndex).ToString() });
+                    int type = Int32.Parse(position[2]);
+                    machines.Add(new Machine() {
+                        Position = new Vector3(x, 1, y),
+                        Name = "Machine " + (machineIndex).ToString(),
+                        Type =type });
                     machineIndex++;
                 }
             }
