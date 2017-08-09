@@ -30,8 +30,6 @@ public class AddCube : MonoBehaviour {
     public List<Item> Items = new List<Item>();
     HashSet<Machine> machines = new HashSet<Machine>();
   
-    
-
 	// Use this for initialization
 	void Start ()
     {
@@ -84,7 +82,20 @@ public class AddCube : MonoBehaviour {
     private void DetailsHandler_ItemClicked(object sender, ItemClickedEventArgs e)
     {
         Debug.Log("Clicked the item: " + e.Item.ItemName);
-        currentSelectedItem = e.Item;
+        ShowItemDetails(e.Item);
+    }
+
+    internal void ShowItemDetails(int itemId)
+    {
+        if(Items.Count > itemId)
+        {
+            ShowItemDetails(Items[itemId]);
+        }
+    }
+
+    public void ShowItemDetails(Item item)
+    {
+        currentSelectedItem = item;
     }
 
     private void LoadData()
@@ -124,7 +135,7 @@ public class AddCube : MonoBehaviour {
     }
 
 
-    private void TogglePause()
+    public void TogglePause()
     {
         if (!isPaused)
         {
@@ -189,13 +200,13 @@ public class AddCube : MonoBehaviour {
         });
 	}
 
-    private void ResetTime()
+    public void ResetTime()
     {
         //Jump to timestep 0
         TravelInTime(0);
     }
 
-    private void TravelInTime(int step)
+    public void TravelInTime(int step)
     {
         startTime = Time.time - step * stepDuration;
 

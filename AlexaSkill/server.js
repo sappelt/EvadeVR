@@ -74,10 +74,11 @@ function getWelcomeResponse(callback) {
     const sessionAttributes = {};
     const cardTitle = 'Welcome';
     const speechOutput = 'Welcome to EvadeVR. ' +
-        'Please start analyzing your data by saying show Hall 1';
+        'Please start analyzing your data by saying Start, Resume, ' +
+        'Pause, Show Item Details, Jump To Timestep or Show Heatmap.';
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
-    const repromptText = 'Please start to analyze your data by saying show Hall 1';
+    const repromptText = speechOutput;
     const shouldEndSession = false;
 
     sendCommand({ 
@@ -88,28 +89,120 @@ function getWelcomeResponse(callback) {
     });    
 }
 
-function getChangeHallResponse(intentRequest, session, callback) {
+function getPauseResponse(intentRequest, session,callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
     const sessionAttributes = {};
-    const cardTitle = 'Change Hall';
-    const speechOutput = 'You are now in hall ';
+    const cardTitle = 'Pause';
+    const speechOutput = 'Simulation pause';
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
-    const repromptText = 'You could change the hall by saying, show hall 1';
+    const repromptText = speechOutput;
     const shouldEndSession = false;
 
-    var hall = undefined;
-    if (intentRequest.intent.slots.Hall) {
-        hall = intentRequest.intent.slots.Hall.value;
+    sendCommand({ 
+        "commandType": "Pause", 
+    }, function() {
+        callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    });    
+}
+
+function getResumeResponse(intentRequest, session,callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
+    const sessionAttributes = {};
+    const cardTitle = 'Resume';
+    const speechOutput = 'Simulation resumed';
+    // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    const repromptText = speechOutput;
+    const shouldEndSession = false;
+
+    sendCommand({ 
+        "commandType": "Resume", 
+    }, function() {
+        callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    });    
+}
+
+function getResetResponse(intentRequest, session,callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
+    const sessionAttributes = {};
+    const cardTitle = 'Reset';
+    const speechOutput = 'Simulation reset';
+    // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    const repromptText = speechOutput;
+    const shouldEndSession = false;
+
+    sendCommand({ 
+        "commandType": "Reset", 
+    }, function() {
+        callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    });    
+}
+
+function getSwitchCameraResponse(intentRequest, session,callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
+    const sessionAttributes = {};
+    const cardTitle = 'SwitchCamera';
+    const speechOutput = 'Camera switched';
+    // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    const repromptText = speechOutput;
+    const shouldEndSession = false;
+
+    sendCommand({ 
+        "commandType": "SwitchCamera", 
+    }, function() {
+        callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    });    
+}
+
+function getToggleHeatmapResponse(intentRequest, session,callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
+    const sessionAttributes = {};
+    const cardTitle = 'Toggle heatmap';
+    const speechOutput = 'Heatmap toggled';
+    // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    const repromptText = speechOutput;
+    const shouldEndSession = false;
+
+    sendCommand({ 
+        "commandType": "ToggleHeatmap", 
+    }, function() {
+        callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    });    
+}
+
+function getJumpToTimeDetailsResponse(intentRequest, session, callback) {
+    const sessionAttributes = {};
+    const cardTitle = 'Jump to timestep';
+    const speechOutput = 'You travelled through time and now are at timestep ';
+    // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    const repromptText = 'You could go back- or forwards by saying, travel to step 5';
+    const shouldEndSession = false;
+
+    var step = undefined;
+    if (intentRequest.intent.slots.Step) {
+        step = intentRequest.intent.slots.Step.value;
     }
 
-    if(hall !== undefined) {
+    if(step !== undefined) {
         sendCommand({ 
-            "commandType": "ChangeHall", 
-            "value": hall
+            "commandType": "JumpToTime", 
+            "step": step
         }, function() {
             callback(sessionAttributes,
-            buildSpeechletResponse(cardTitle, speechOutput + hall, repromptText, shouldEndSession));
+            buildSpeechletResponse(cardTitle, speechOutput + step, repromptText, shouldEndSession));
         });    
+    } else {
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession);
     }
 }
 
@@ -123,18 +216,20 @@ function getShowItemDetailsResponse(intentRequest, session, callback) {
     const shouldEndSession = false;
 
     var item = undefined;
-    if (intentRequest.intent.slots.Item) {
-        item = intentRequest.intent.slots.Item.value;
+    if (intentRequest.intent.slots.ItemId) {
+        item = intentRequest.intent.slots.ItemId.value;
     }
 
     if(item !== undefined) {
         sendCommand({ 
             "commandType": "ShowItemDetails", 
-            "value": item
+            "itemId": item
         }, function() {
             callback(sessionAttributes,
             buildSpeechletResponse(cardTitle, speechOutput + item, repromptText, shouldEndSession));
         });    
+    } else {
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession);
     }
 }
 
@@ -201,8 +296,23 @@ function onIntent(intentRequest, session, callback) {
     const intentName = intentRequest.intent.name;
 
     // Dispatch to your skill's intent handlers
-    if (intentName === 'ChangeHall') {
-        getChangeHallResponse(intentRequest, session, callback);
+    if (intentName === 'Pause') {
+        getPauseResponse(intentRequest, session, callback);
+    }
+    else if (intentName === 'Reset') {
+        getResetResponse(intentRequest, session, callback);
+    }
+    else if (intentName === 'Resume') {
+        getResumeResponse(intentRequest, session, callback);
+    }
+    else if (intentName === 'SwitchCamera') {
+        getSwitchCameraResponse(intentRequest, session, callback);
+    }
+    else if (intentName === 'ShowHeatmap' || intentName === 'HideHeatmap') {
+        getToggleHeatmapResponse(intentRequest, session, callback);
+    }
+    else if (intentName === 'JumpToTime') {
+        getJumpToTimeDetailsResponse(intentRequest, session, callback);
     }
     else if(intentName === "ShowItemDetails") {
         getShowItemDetailsResponse(intentRequest, session, callback);
