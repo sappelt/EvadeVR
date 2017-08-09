@@ -15,6 +15,7 @@ public class AddCube : MonoBehaviour {
     public GameObject viveLeftController;
     public GameObject areaGameObject;
 
+    private LineRenderer lineRenderer;
     public float stepDuration = 0.2f;
 	public int rows = 12;
 	public int columns = 12;
@@ -39,6 +40,8 @@ public class AddCube : MonoBehaviour {
         itemGameObject.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.05), gameArea.CubeSize);
         CreateMachines();
         CreateItems();
+        lineRenderer = lineRenderer.GetComponent<LineRenderer>();
+       
     }
 
     private void CreateItems()
@@ -176,6 +179,10 @@ public class AddCube : MonoBehaviour {
                 Vector3 nextPosition = item.Path[step] + (item.Path[step + 1] - item.Path[step]) * progress;
                 Vector3 itemPosition = Vector3.Scale(nextPosition, gameArea.MovementVector)
                     + gameArea.StartVector + item.Offset;
+
+                lineRenderer.SetPosition(0, itemPosition);
+                lineRenderer.SetPosition(1, nextPosition);
+                lineRenderer.SetWidth(45.0f, 45.0f);
 
                 //If we completed one step fully, we add a path cube
                 if (isFullStep)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class ListItemMenu : MonoBehaviour {
     
@@ -18,7 +19,24 @@ public class ListItemMenu : MonoBehaviour {
     // Use this for initialization
     void Start () {
         viveController.MenuClickedHandler += ViveController_MenuClickedHandler;
-    
+        viveController.PointerIn += ViveController_PointerIn;
+        viveController.PointerOut += ViveController_PointerOut;
+        viveController.TriggerClicked += ViveController_TriggerClicked;
+    }
+
+    private void ViveController_TriggerClicked(object sender, ClickedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void ViveController_PointerOut(object sender, PointerEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void ViveController_PointerIn(object sender, PointerEventArgs e)
+    {
+        throw new NotImplementedException();
     }
 
     private void ViveController_MenuClickedHandler(object sender, ClickedEventArgs e)
@@ -54,9 +72,7 @@ public class ListItemMenu : MonoBehaviour {
             listItem.GetComponent<Button>().onClick.AddListener(OnClick);
 
             listItem.transform.GetChild(0).GetComponent<Text>().text = "Item" + i;
-
-            //text = listItem.GetComponent<Text>();
-            //text.text = "Item" + i;
+            
         }
     }
     
