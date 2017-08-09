@@ -12,20 +12,30 @@ public class AddCube : MonoBehaviour {
     public GameObject machineGameObject;
     public GameObject viveLeftController;
     public GameObject areaGameObject;
+	public GameObject gridCellGameObject;
 
     public float stepDuration = 0.2f;
 	public int rows = 12;
 	public int columns = 12;
     private int step = 0;
-    bool isPaused = false;
+
+	private bool drawPersistentHeatmap = true;
+	private bool drawTemporalHeatmap = false;
+    
+	bool isPaused = false;
+
     ViveController viveController;
     Item currentSelectedItem;
-    GameArea gameArea;
+	GameArea gameArea;
+	Heatmap heatmap;
+	HeatField heatfield;
+	List<Item> items = new List<Item>();
 
-    List<Item> items = new List<Item>();
+	GameObject[,] map;
+	Dictionary <Vector2, HeatField> grid = new Dictionary<Vector2, HeatField> ();
 
-   
-    
+//	Dictionary<Vector2, int> grid; 
+
 
 	// Use this for initialization
 	void Start ()
@@ -34,7 +44,37 @@ public class AddCube : MonoBehaviour {
         LoadData();
         gameArea = new GameArea(areaGameObject);
         itemGameObject.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.05), gameArea.CubeSize);
-       
+	
+		map = new GameObject[columns,rows];
+
+		//Initiate the Grid Background
+		float cellSize = (float)(gameArea.FieldSize);
+		int gridCounter = 0;
+
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < columns; j++) {
+				GameObject cellInstance;
+				cellInstance = Instantiate (gridCellGameObject);
+				cellInstance.transform.Rotate(90, 0, 0);
+				cellInstance.GetComponent<Renderer> ().material.color = new Color (1, 1, 1, 0.8f);
+//				cellInstance.GetComponent<Renderer> ().material.color = Color.clear;
+
+				cellInstance.transform.position = Vector3.Scale ((new Vector3 (i, 0.2f, j)), gameArea.MovementVector)
+					+ gameArea.StartVector;
+				cellInstance.transform.localScale = new Vector3 (cellSize, cellSize, cellSize);
+				cellInstance.name = "GridCell: " + "(" + i + "," + j + ")";
+
+				map [i, j] = cellInstance;
+				grid.Add (new Vector2 ((float)i, (float)j), new HeatField (cellInstance, 0));
+
+				gridCounter++;
+			}
+			gridCounter++;
+		}
+		this.heatmap = new Heatmap (map);
+			
+
+		//End Initiate Background
 
         //Draw Machines/Sources/Sinks
         //TODO: Read from file (not hardcoded shit) and shorten obviously
@@ -47,21 +87,21 @@ public class AddCube : MonoBehaviour {
             new int[] {10,10},
             new int[] {3,3},
         };
-        int[][] sources =
-        {
-            new int[] {0,1},
-            new int[] {0,4},
-            new int[] {0,7},
-            new int[] {0,10}
-        };
-        int[][] sinks =
-        {
-            new int[] {11,1},
-            new int[] {11,4},
-            new int[] {11,7},
-            new int[] {11,10}
-        };
-        float machineSize = (float)(gameArea.FieldSize * (1 / 1800.0));
+//        int[][] sources =
+//        {
+//            new int[] {0,1},
+//            new int[] {0,4},
+//            new int[] {0,7},
+//            new int[] {0,10}
+//        };
+//        int[][] sinks =
+//        {
+//            new int[] {11,1},
+//            new int[] {11,4},
+//            new int[] {11,7},
+//            new int[] {11,10}
+//        };
+		float machineSize = (float)(gameArea.FieldSize * (1 / 1800.0));
         foreach (int[] machine in machines)
         {
             GameObject machineInstace;
@@ -73,14 +113,17 @@ public class AddCube : MonoBehaviour {
             machineInstace.transform.localScale = new Vector3(machineSize, machineSize, machineSize);
             machineInstace.name = "Machine: " + "(" + machine[0] + "," + machine[1] + ")";
         }
-        //foreach (int[] source in sources)
-        //{
-        //    GameObject cubeInstance;
-        //    cubeInstance = Instantiate(itemGameObject);
-        //    cubeInstance.GetComponent<Renderer>().material.color = Color.white;
-        //    cubeInstance.transform.position = Vector3.Scale((new Vector3(source[0], 1, source[1])), scaleVector) + startVector;
-        //    cubeInstance.name = "Source: " + "(" + source[0] + "," + source[1] + ")";
-        //}
+//        foreach (int[] source in sources)
+//        {
+//            GameObject cubeInstance;
+//            cubeInstance = Instantiate(itemGameObject);
+//            cubeInstance.GetComponent<Renderer>().material.color = Color.white;
+//			cubeInstance.transform.position = Vector3.Scale((new Vector3(source[0], 1, source[1])), gameArea.MovementVector) 
+//				+ gameArea.StartVector;
+//			cubeInstance.transform.localScale = new Vector3(cellSize, cellSize, cellSize);
+//
+//            cubeInstance.name = "Source: " + "(" + source[0] + "," + source[1] + ")";
+//        }
         //foreach (int[] sink in sinks)
         //{
         //    GameObject cubeInstance;
@@ -109,7 +152,7 @@ public class AddCube : MonoBehaviour {
             items[i].Cube = cubeInstance;
             items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
         }
-
+			
         //Cell 0 / 0
     }
 
@@ -176,28 +219,65 @@ public class AddCube : MonoBehaviour {
             TogglePause();
         }
 
+//		cellInstance.GetComponent<Renderer>().material.color = Color.red;
+
         int lastStep = step;
-		step = (int)Math.Floor(Time.time / stepDuration);
-        bool isFullStep = (lastStep != step);
+		step = (int)Math.Floor(Time.time / stepDuration);       
+		bool isFullStep = (lastStep != step);
         float progress = Math.Abs(step - (Time.time / stepDuration));
 
-        items.ForEach(item =>
+		//*HEATMAP*
+		int heatmapStep = (int)Math.Ceiling(Time.time / stepDuration);
+		if (drawPersistentHeatmap == false) {
+			heatmap.reset();
+		}
+		//*HEATMAP*
+
+		items.ForEach(item =>
         {
-            if (item.Path.ContainsKey(step) && item.Path.ContainsKey(step + 1))
+			if (item.Path.ContainsKey(step) && item.Path.ContainsKey(step + 1))
             {
                 Vector3 nextPosition = item.Path[step] + (item.Path[step + 1] - item.Path[step]) * progress;
+
                 Vector3 itemPosition = Vector3.Scale(nextPosition, gameArea.MovementVector)
                     + gameArea.StartVector + item.Offset;
-
                 //If we completed one step fully, we add a path cube
+			
+				Vector2 temp = new Vector2(item.Path[heatmapStep].x, item.Path[heatmapStep].z);
+
                 if (isFullStep)
                 {
                     itemPosition.y = 1;
-                    CreatePathCube(itemPosition, item);
-                }
+					//CreatePathCube(itemPosition, item);
+					
+				//*Persistent HEATMAP*
+				if (drawPersistentHeatmap == true) {
+					heatmap.update("persistent", temp);
+				}
 
-                item.Cube.transform.position = itemPosition;
-            }
+				//*Persistent HEATMAP*
+				}
+				if (drawPersistentHeatmap == false) {
+					heatmap.update("temporal", temp);
+				}
+				//*HEATMAP*
+				
+				item.Cube.transform.position = itemPosition;
+				
+				//*HEATMAP*
+			} else {
+				if (drawPersistentHeatmap == false) {
+					for(int i = heatmapStep-1; i >= 0; i--) {
+						if(item.Path.ContainsKey(i)) {
+							Vector2 temp = new Vector2(item.Path[i].x, item.Path[i].z);
+							heatmap.update("temporal", temp);
+//							grid[temp].addUpVisited();
+							break;
+						}
+					}
+				}
+			}
+			//*HEATMAP*
 
             //If one item is selected, hide the others
             if (currentSelectedItem != null && currentSelectedItem.Equals(item))
@@ -210,7 +290,27 @@ public class AddCube : MonoBehaviour {
                 //HidePathCubes(item);
                // UnhighlightPath(item.PathGameObjects);
             }
+//			
+//			if (item.Path.ContainsKey(step)) {
+//				item.Path[step];gogo
+//				Debug.Log(step);
+//			}
         });
+
+		//*HEATMAP*
+		//Draws a persistent heatmap (factor maybe depending on stepduration)
+		if (drawPersistentHeatmap == false ) {
+			heatmap.draw ();
+		}
+		//*HEATMAP*
+
+		if (Input.GetKeyDown(KeyCode.H)) {
+			this.toggleHeatmapVisibility ();
+		}
+		if (Input.GetKeyDown(KeyCode.G)) {
+			this.toggleHeatmapStyle ();
+		}
+
 	}
 
     private void HighlightPath(List<GameObject> pathGameObjects)
@@ -262,4 +362,12 @@ public class AddCube : MonoBehaviour {
 
         item.PathGameObjects.Add(pathCube);
     }
+
+	private void toggleHeatmapVisibility() {
+		this.heatmap.toggleVisibility ();
+	}
+	private void toggleHeatmapStyle() {
+		this.drawPersistentHeatmap = !this.drawPersistentHeatmap;
+	}
+
 }
