@@ -1,4 +1,5 @@
-﻿using Assets.Scripts;
+﻿using Assets;
+using Assets.Scripts;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using UnityEngine.UI;
 public class AddCube : MonoBehaviour {
 
     public GameObject timeStepText;
-	public GameObject itemGameObject;
+	public List<GameObject> itemGameObjects;
     public List<GameObject> machineGameObjects;
     public GameObject viveLeftController;
     public GameObject areaGameObject;
@@ -42,7 +43,7 @@ public class AddCube : MonoBehaviour {
 	//Dictionary <Vector2, HeatField> grid = new Dictionary<Vector2, HeatField> ();
 
     public List<Item> Items = new List<Item>();
-    HashSet<Machine> machines = new HashSet<Machine>();
+    Dictionary<PositionKey, Machine> machines = new Dictionary<PositionKey, Machine>();
   
 	// Use this for initialization
 	void Start ()
@@ -50,7 +51,6 @@ public class AddCube : MonoBehaviour {
         InitViveController();
         LoadData();
         gameArea = new GameArea(areaGameObject);
-        itemGameObject.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.05), gameArea.CubeSize);
 	
 		map = new GameObject[columns,rows];
 
@@ -64,7 +64,6 @@ public class AddCube : MonoBehaviour {
 				cellInstance = Instantiate (gridCellGameObject);
 				cellInstance.transform.Rotate(90, 0, 0);
 				cellInstance.GetComponent<Renderer> ().material.color = new Color (1, 1, 1, 0.8f);
-//				cellInstance.GetComponent<Renderer> ().material.color = Color.clear;
 
 				cellInstance.transform.position = Vector3.Scale ((new Vector3 (i, 0.2f, j)), gameArea.MovementVector)
 					+ gameArea.StartVector;
@@ -80,37 +79,14 @@ public class AddCube : MonoBehaviour {
 		}
 		this.heatmap = new Heatmap (map);
 			
-
-		//End Initiate Background
-
-        //Draw Machines/Sources/Sinks
-        //TODO: Read from file (not hardcoded shit) and shorten obviously
-//        int[][] machines =
-//        {
-//            new int[] {7,6},
-//            new int[] {4,11},
-//            new int[] {6,0},
-//            new int[] {5,3},
-//            new int[] {10,10},
-//            new int[] {3,3},
-//        };
-//
-//		float machineSize = (float)(gameArea.FieldSize * (1 / 1800.0));
-//        foreach (int[] machine in machines)
-//        {
-//            GameObject machineInstace;
-//            machineInstace = Instantiate(machineGameObjects);
-//
-//            //machineInstace.GetComponent<Renderer>().material.color = Color.red;
-//            machineInstace.transform.position = Vector3.Scale((new Vector3(machine[0], 1, machine[1])), gameArea.MovementVector) 
-//                + gameArea.StartVector;
-//            machineInstace.transform.localScale = new Vector3(machineSize, machineSize, machineSize);
-//            machineInstace.name = "Machine: " + "(" + machine[0] + "," + machine[1] + ")";
-//        }
-
+        foreach(GameObject itemGameObject in itemGameObjects)
+        {
+            itemGameObject.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.05), gameArea.CubeSize);
+        }
+        
         CreateMachines();
         CreateItems();
-       
+        
     }
 
     private void CreateItems()
@@ -118,29 +94,31 @@ public class AddCube : MonoBehaviour {
         //Instantiate 1 cube for every trace
         for (int i = 0; i < Items.Count; i++)
         {
-            GameObject cubeInstance;
-            cubeInstance = Instantiate(itemGameObject);
-            //cubeInstance.GetComponent<Renderer> ().material.color = UnityEngine.Random.ColorHSV(0.5f, 0.6f, 0.2f, 1f, 1f, 1f);
-            //cubeInstance.GetComponent<Renderer> ().material.color = new Color((i*50)%255, 255, 150);
-            cubeInstance.transform.position = new Vector3(0, -10000, 0);
-            cubeInstance.name = "Trace: " + i;
-            ItemDetailsHandler detailsHandler = cubeInstance.AddComponent<ItemDetailsHandler>();
-            detailsHandler.Item = Items[i];
-            detailsHandler.ItemClicked += DetailsHandler_ItemClicked;
-
-            float randomOffset = UnityEngine.Random.Range(0, gameArea.FieldSize - (gameArea.CubeSize));
-
-            Items[i].Cube = cubeInstance;
-            Items[i].Offset = new Vector3(randomOffset, 0, randomOffset);
+            CreateItemGameObject(Items[i], itemGameObjects[0]);
         }
 
+    }
+
+    private void CreateItemGameObject(Item item, GameObject itemGameObject)
+    {
+        GameObject cubeInstance = Instantiate(itemGameObject);
+        cubeInstance.transform.position = new Vector3(0, -10000, 0);
+        cubeInstance.name = "Trace: " + item.ItemName;
+        ItemDetailsHandler detailsHandler = cubeInstance.AddComponent<ItemDetailsHandler>();
+        detailsHandler.Item = item;
+        detailsHandler.ItemClicked += DetailsHandler_ItemClicked;
+
+        float randomOffset = UnityEngine.Random.Range(0, gameArea.FieldSize - (gameArea.CubeSize));
+
+        item.Cube = cubeInstance;
+        item.Offset = new Vector3(randomOffset, 0, randomOffset);
     }
 
     private void CreateMachines()
     {
         float machineSize = gameArea.FieldSize;
 
-        foreach (Machine machine in machines)
+        foreach (Machine machine in machines.Values)
         {
             GameObject machineInstace;
 
@@ -268,6 +246,7 @@ public class AddCube : MonoBehaviour {
                 if(nextStep == -1)
                     return;
 
+                PositionKey key = new PositionKey((int)item.Path[step].x, (int)item.Path[step].z);
                 Vector3 nextPosition = item.Path[step] + (item.Path[nextStep] - item.Path[step]) * progress;
                 Vector3 itemPosition = Vector3.Scale(nextPosition, gameArea.MovementVector)
                     + gameArea.StartVector + item.Offset;
@@ -280,6 +259,7 @@ public class AddCube : MonoBehaviour {
                     itemPosition.y = 1;
 
 					//CreatePathCube(itemPosition, item);
+                    CreatePathCube(itemPosition, item);
 
                     int itemFirstStep = item.Path.Keys.First();
                     //Create a path for the first waypoint
@@ -290,6 +270,9 @@ public class AddCube : MonoBehaviour {
 
                         CreatePathCube(firstPathVector, item);
                     }
+
+                    CheckUpdateModel(item, key, nextPosition);
+                }
 
 					//*HEATMAP*
 					if (drawPersistentHeatmap == true) {
@@ -343,6 +326,20 @@ public class AddCube : MonoBehaviour {
 		//*HEATMAP*
 
 	}
+
+    private void CheckUpdateModel(Item item, PositionKey key, Vector3 position)
+    {
+
+        if (machines.ContainsKey(key))
+        {
+            item.ProductionStep++;
+            int itemGameObjectIndex = Math.Min(item.ProductionStep, itemGameObjects.Count-1);
+          
+            Destroy(item.Cube);
+            CreateItemGameObject(item, itemGameObjects[itemGameObjectIndex]);
+            item.Cube.transform.position = position;
+        }
+    }
 
     private int GetNextStep(Item item, int step)
     {
@@ -448,7 +445,8 @@ public class AddCube : MonoBehaviour {
     private void CreatePathCube(Vector3 position, Item item)
     {
         GameObject pathCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        pathCube.transform.position = position;
+        Vector3 pathPosition = new Vector3(position.x, 1, position.z);
+        pathCube.transform.position = pathPosition;
         pathCube.transform.localScale = new Vector3(gameArea.CubeSize, (float)(gameArea.FieldSize * 0.005), gameArea.CubeSize);
 
         UpdateCubeColor(pathCube, Color.white);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -23,7 +24,8 @@ namespace Assets.Scripts
                     continue;
 
                 currentItem = new Item();
-                currentItem.ItemName = "Item " + itemIndex;
+                int traceIndex = Int32.Parse(Regex.Match(file, @"\d+").Value);
+                currentItem.ItemName = "Item " + traceIndex;
 
                 string sFileContents = new StreamReader(File.OpenRead(file)).ReadToEnd();
 
@@ -65,9 +67,9 @@ namespace Assets.Scripts
             }
         }
 
-        public static HashSet<Machine> ReadMachineVars(String directoryPath)
+        public static Dictionary<PositionKey, Machine> ReadMachineVars(String directoryPath)
         {
-            HashSet<Machine> machines = new HashSet<Machine>();
+            Dictionary<PositionKey, Machine> machines = new Dictionary<PositionKey, Machine>();
             string sFileContents = new StreamReader(File.OpenRead(Path.Combine(directoryPath, "factory_map10.csv"))).ReadToEnd();
             string[] machinePositions = sFileContents.Split(';');
             int machineIndex = 0;
@@ -79,11 +81,20 @@ namespace Assets.Scripts
                     float x = float.Parse(position[0].Replace('(', ' ').Replace(')', ' ').Trim());
                     float y = float.Parse(position[1].Replace('(', ' ').Replace(')', ' ').Trim());
                     int type = Int32.Parse(position[2]);
-                    machines.Add(new Machine() {
-                        Position = new Vector3(x, 1, y),
-                        Name = "Machine " + (machineIndex).ToString(),
-                        Type =type });
-                    machineIndex++;
+                    Vector3 vectorPosition = new Vector3(x, 1, y);
+                    PositionKey key = new PositionKey((int)x, (int)y);
+
+                    if (!machines.ContainsKey(key))
+                    {
+                        machines.Add(key, new Machine()
+                        {
+                            Position = vectorPosition,
+                            Name = "Machine " + (machineIndex).ToString(),
+                            Type = type
+                        });
+                        machineIndex++;
+                    }
+                    
                 }
             }
 

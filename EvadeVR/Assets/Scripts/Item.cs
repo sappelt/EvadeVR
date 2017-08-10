@@ -10,19 +10,20 @@ namespace Assets.Scripts
     {
         public GameObject Cube { get; set; }
         public List<GameObject> PathGameObjects { get; set; }
+        public int ProductionStep { get; set; }
 
         public Vector3 Offset { get; set; }
 
         public SortedDictionary<int, Vector3> Path { get; set; }
 
         public String ItemName { get; set; }
-        public HashSet<String> Machines { get; set; }
+        public List<String> Machines { get; set; }
 
         public Item()
         {
             Path = new SortedDictionary<int, Vector3>();
             PathGameObjects = new List<GameObject>();
-            Machines = new HashSet<string>();
+            Machines = new List<string>();
         }
     }
 }
